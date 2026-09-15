@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struct Framework — Clean Architecture Go Microservices</title>
+  <meta name="description" content="Production-ready, typed-first Go microservice framework featuring Clean Architecture, dual PostgreSQL/MySQL drivers, WebAuthn passkeys, TOTP, i18n, and complete observability." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-card-hover: rgba(31, 41, 55, 0.8);
+      --bg-glass: rgba(17, 24, 39, 0.6);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.3);
+      --primary-light: #818cf8;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --code-bg: #090d16;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --header-height: 64px;
+      --sidebar-width: 290px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.1) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height);
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--primary-light);
+    }
+
+    .search-box {
+      position: relative;
+      width: 380px;
+      max-width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 38px;
+      background: rgba(17, 24, 39, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0 14px 0 38px;
+      color: #fff;
+      font-size: 0.85rem;
+      font-family: var(--font-sans);
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      fill: var(--text-muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .nav-btn {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .nav-btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .nav-btn.primary:hover {
+      background: var(--primary-light);
+    }
+
+    /* Layout */
+    .app-container {
+      display: flex;
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      position: fixed;
+      top: var(--header-height);
+      bottom: 0;
+      left: 0;
+      background: rgba(11, 15, 25, 0.6);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      padding: 24px 16px;
+      z-index: 90;
+    }
+
+    .sidebar-group {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 12px 8px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.12);
+    }
+
+    .sidebar-link.active {
+      color: var(--primary-light);
+      font-weight: 600;
+      border-left: 3px solid var(--primary);
+    }
+
+    .sidebar-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.7;
+    }
+
+    /* Main Content */
+    .content-area {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px 120px;
+      max-width: 1200px;
+    }
+
+    /* Hero */
+    .hero-section {
+      padding: 40px 0 60px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 48px;
+    }
+
+    .hero-badge-strip {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-green {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .pill-blue {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--primary-light);
+    }
+
+    .pill-cyan {
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #22d3ee;
+    }
+
+    .hero-title {
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 820px;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+
+    .command-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 680px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .command-text {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: #38bdf8;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #fff;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all 0.2s ease;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Grid Cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin: 32px 0 64px;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 28px;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(99, 102, 241, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .feature-card:hover::before {
+      opacity: 1;
+    }
+
+    .feature-icon-wrapper {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: var(--primary-light);
+    }
+
+    .feature-heading {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .feature-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Architecture Visualizer */
+    .section-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 48px 0 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-desc {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 800px;
+      margin-bottom: 28px;
+    }
+
+    .arch-diagram {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: #e5e7eb;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin-bottom: 40px;
+    }
+
+    /* Tabs Component */
+    .tabs-container {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      background: rgba(17, 24, 39, 0.9);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 12px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 12px 16px;
+      font-family: var(--font-sans);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      color: #fff;
+    }
+
+    .tab-btn.active {
+      color: var(--primary-light);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content {
+      display: none;
+      padding: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Table Styles */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 40px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .api-table th {
+      text-align: left;
+      padding: 14px 18px;
+      background: rgba(17, 24, 39, 0.9);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .api-table td {
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+    }
+
+    .api-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .api-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: #fff;
+    }
+
+    .method-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-align: center;
+      min-width: 54px;
+    }
+
+    .method-get { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .method-post { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+    .method-delete { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .method-patch { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+    /* Footer */
+    .doc-footer {
+      border-top: 1px solid var(--border-color);
+      padding: 48px 0 24px;
+      margin-top: 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .content-area {
+        margin-left: 0;
+        padding: 24px 20px 80px;
+      }
+      .search-box {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <a href="#top" class="brand-group">
+      <div class="brand-logo">S</div>
+      <span class="brand-title">Struct</span>
+      <span class="brand-badge">Go 1.27</span>
+    </a>
+
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24">
+        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <input type="text" id="globalSearch" class="search-input" placeholder="Search architecture, routes, CLI commands... (/)" />
+    </div>
+
+    <div class="nav-actions">
+      <a href="API_REFERENCE.md" class="nav-btn">API Reference</a>
+      <a href="CLI_REFERENCE.md" class="nav-btn">CLI Manual</a>
+      <a href="FRAMEWORK_GUIDE.md" class="nav-btn primary">Architecture Guide</a>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-label">Getting Started</div>
+        <ul class="sidebar-menu">
+          <li><a href="#overview" class="sidebar-link active">Overview</a></li>
+          <li><a href="#quickstart" class="sidebar-link">Quickstart</a></li>
+          <li><a href="#clean-architecture" class="sidebar-link">Clean Architecture</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Core Infrastructure</div>
+        <ul class="sidebar-menu">
+          <li><a href="#config-system" class="sidebar-link">Robust Config</a></li>
+          <li><a href="#appctx" class="sidebar-link">AppContext Lifecycle</a></li>
+          <li><a href="#error-handling" class="sidebar-link">Typed Errors (apperr)</a></li>
+          <li><a href="#auth-stack" class="sidebar-link">Authentication Stack</a></li>
+          <li><a href="#observability" class="sidebar-link">Diagnostics & Metrics</a></li>
+          <li><a href="#database-broker" class="sidebar-link">Multi-DB & Brokers</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">API & Tools</div>
+        <ul class="sidebar-menu">
+          <li><a href="#api-catalog" class="sidebar-link">Endpoint Reference</a></li>
+          <li><a href="#cli-catalog" class="sidebar-link">CLI Commands</a></li>
+          <li><a href="#deployment" class="sidebar-link">Docker Deployment</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Hero Section -->
+      <section id="overview" class="hero-section">
+        <div class="hero-badge-strip">
+          <span class="status-pill pill-green">Build: Passing (Go 1.27)</span>
+          <span class="status-pill pill-blue">Architecture: Clean MVC</span>
+          <span class="status-pill pill-cyan">Zero Reflection at Runtime</span>
+        </div>
+
+        <h1 class="hero-title">High-Performance, Secure Go Microservices.</h1>
+        <p class="hero-subtitle">
+          Struct is a typed-first Go microservice framework featuring Clean Architecture, dual PostgreSQL and MySQL wire protocols, full authentication (WebAuthn passkeys, RFC 6238 TOTP, HS256 JWT), W3C tracing, Prometheus text exposition, and container CPU limit detection.
+        </p>
+
+        <div class="command-box">
+          <span class="command-text" id="cmdQuick">make compose-up && make check && make run</span>
+          <button class="copy-btn" onclick="copyCommand('cmdQuick')">Copy</button>
+        </div>
+      </section>
+
+      <!-- Key Pillars -->
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          </div>
+          <h3 class="feature-heading">Hardened Security</h3>
+          <p class="feature-desc">Constant-time hash verifications, HS256 algorithm enforcement, 15-minute brute-force lockout, and PII masking in structured logs.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          </div>
+          <h3 class="feature-heading">Sub-Millisecond Engine</h3>
+          <p class="feature-desc">16-shard FNV mutex rate limiting, sync.Pool buffer reuse, tuned HTTP keep-alive connection pools, and cgroup-aware GOMAXPROCS.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">
+            <svg width="22" height="22" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z"/></svg>
+          </div>
+          <h3 class="feature-heading">Clean Layering Invariant</h3>
+          <p class="feature-desc">Strict decoupling: Platform packages never import Domain packages. Single-method interfaces decouple infrastructure from business logic.</p>
+        </div>
+      </div>
+
+      <!-- Clean Architecture -->
+      <section id="clean-architecture">
+        <h2 class="section-title">Clean Architecture & Package Layout</h2>
+        <p class="section-desc">
+          Struct organizes code into strictly isolated boundaries. Business models, controllers, and services belong to the domain layer; transport, security, storage, and telemetry belong to the platform layer.
+        </p>
+
+        <div class="arch-diagram">
+cmd/
+  ├── api/              # Composition root execution entrypoint (wires dependencies, binds port)
+  └── struct/           # Operational CLI entrypoint (codegen, migrations, doctor, relay)
+internal/
+  ├── app/              # Application Composition Root: Build(), Routes(), DI wiring
+  ├── mvc/              # Domain & Presentation Layer
+  │     ├── models/     # Domain entities (User, Session, Credentials)
+  │     ├── services/   # Business logic (UserService, AuthService)
+  │     ├── controllers/# HTTP handlers & error renderers
+  │     ├── views/      # Response DTOs
+  │     └── apperr/     # Typed domain error hierarchy
+  ├── platform/         # Pure Infrastructure Layer (Never imports internal/mvc)
+  │     ├── config/     # Strict environment loader (AppName, DBDriver, Broker)
+  │     ├── http/       # Router, middleware chain, and appctx RequestContext
+  │     ├── store/      # Interchangeable store.Driver: PostgreSQL & MySQL
+  │     ├── security/   # Authn (JWT), TOTP (RFC 6238), WebAuthn passkeys, Authz
+  │     ├── events/     # Domain events, Message Broker factory, and Outbox Relay
+  │     ├── logging/    # Context-aware slog with PII redaction
+  │     ├── metrics/    # Prometheus registry & Go runtime collector
+  │     ├── tracing/    # W3C Traceparent parser & span exporter
+  │     └── procs/      # cgroup v1/v2 CPU limit quota reader
+  └── support/          # Cryptography, validation, and in-process job runners
+        </div>
+      </section>
+
+      <!-- Request Lifecycle & AppContext -->
+      <section id="appctx">
+        <h2 class="section-title">Request Lifecycle & AppContext</h2>
+        <p class="section-desc">
+          Struct coordinates request state through a typed <code>appctx.RequestContext</code> attached to the standard <code>context.Context</code>. Downstream services and loggers access correlation metadata without manual type assertions.
+        </p>
+
+        <div class="tabs-container">
+          <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-appctx-go')">Go Handler Example</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-appctx-log')">Structured Log Output</button>
+          </div>
+          <div id="tab-appctx-go" class="tab-content active">
+<pre><code>func (c *UserController) Get(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+
+    // Access AppContext metadata directly
+    reqID := appctx.RequestID(ctx)       // e.g. "a1b2c3d4e5f6"
+    traceID := appctx.TraceID(ctx)       // W3C Trace Context
+    clientIP := appctx.ClientIP(ctx)     // Trusted client IP
+    locale := appctx.Locale(ctx)         // Resolved locale ("en", "es")
+
+    // Verify authenticated user
+    userID, ok := appctx.UserID(ctx)
+    if !ok {
+        writeError(w, http.StatusUnauthorized, "authentication required", nil)
+        return
+    }
+
+    // Logger automatically injects request_id, trace_id, and user_id
+    c.logger.InfoContext(ctx, "retrieving user record", "target_id", r.PathValue("id"))
+}</code></pre>
+          </div>
+          <div id="tab-appctx-log" class="tab-content">
+<pre><code>{
+  "time": "2026-09-15T08:30:15.123Z",
+  "level": "INFO",
+  "msg": "retrieving user record",
+  "service": "struct-framework",
+  "version": "1.0.0",
+  "request_id": "a1b2c3d4e5f6",
+  "trace_id": "4bf92f3577b34da6a3ce929d0e0e4736",
+  "user_id": "usr_9c8b7a6d",
+  "client_ip": "192.168.1.100",
+  "target_id": "usr_9c8b7a6d"
+}</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Diagnostics & Metrics -->
+      <section id="observability">
+        <h2 class="section-title">Diagnostics, Health Checks & Profiling</h2>
+        <p class="section-desc">
+          Struct exposes standard endpoints for cluster management, load balancing, and runtime diagnostics.
+        </p>
+
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Endpoint</th>
+              <th>Purpose</th>
+              <th>Response</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="method-badge method-get">GET</span></td>
+              <td><code>/healthz</code></td>
+              <td>Process liveness probe; reports uptime and application version.</td>
+              <td><code>{"status":"ok","app":"...","version":"..."}</code></td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-get">GET</span></td>
+              <td><code>/readyz</code></td>
+              <td>Multi-component readiness; pings database and broker with timeout.</td>
+              <td><code>{"status":"ready","checks":{"database":"healthy"}}</code></td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-get">GET</span></td>
+              <td><code>/metrics</code></td>
+              <td>Prometheus text format; HTTP duration histograms, request totals, Go runtime.</td>
+              <td><code>text/plain; version=0.0.4</code></td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-get">GET</span></td>
+              <td><code>/debug/pprof/*</code></td>
+              <td>Runtime profiling (index, profile, trace, goroutines, heap allocations).</td>
+              <td>HTML / Binary Profiles (Configurable)</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- API Catalog -->
+      <section id="api-catalog">
+        <h2 class="section-title">Interactive HTTP API Reference</h2>
+        <p class="section-desc">
+          Every route adheres to uniform RFC 7807 error structures. Routes marked with <strong>✱</strong> require an <code>Authorization: Bearer &lt;token&gt;</code> header.
+        </p>
+
+        <table class="api-table" id="routeTable">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Path</th>
+              <th>Auth</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/users</code></td>
+              <td>Public</td>
+              <td>Creates a new user account with email, password, and locale.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-get">GET</span></td>
+              <td><code>/v1/users/{id}</code></td>
+              <td>Public</td>
+              <td>Fetches user profile by identifier.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/login</code></td>
+              <td>Public</td>
+              <td>Authenticates email + password; returns token pair or MFA challenge ticket.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/refresh</code></td>
+              <td>Public</td>
+              <td>Rotates refresh token for a fresh token pair.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/logout</code></td>
+              <td>Public</td>
+              <td>Revokes single session identified by refresh token.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/logout-all</code></td>
+              <td><strong>✱ Bearer</strong></td>
+              <td>Revokes all active sessions for caller across all devices.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/totp/enroll</code></td>
+              <td><strong>✱ Bearer</strong></td>
+              <td>Generates new RFC 6238 TOTP enrollment secret and QR uri.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/totp/confirm</code></td>
+              <td><strong>✱ Bearer</strong></td>
+              <td>Confirms enrollment code and generates single-use backup recovery codes.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-delete">DELETE</span></td>
+              <td><code>/v1/auth/totp</code></td>
+              <td><strong>✱ Bearer</strong></td>
+              <td>Disables TOTP 2FA and deletes remaining backup codes.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/passkeys/register/begin</code></td>
+              <td><strong>✱ Bearer</strong></td>
+              <td>Initiates WebAuthn passkey registration ceremony.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/passkeys/register/finish</code></td>
+              <td><strong>✱ Bearer</strong></td>
+              <td>Completes ceremony, validates COSE public key, and persists passkey.</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/passkeys/login/begin</code></td>
+              <td>Public</td>
+              <td>Starts passwordless WebAuthn login (email-first).</td>
+            </tr>
+            <tr>
+              <td><span class="method-badge method-post">POST</span></td>
+              <td><code>/v1/auth/passkeys/login/finish</code></td>
+              <td>Public</td>
+              <td>Verifies authenticator assertion and issues session tokens.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- CLI Manual -->
+      <section id="cli-catalog">
+        <h2 class="section-title">CLI Operational Tooling (`struct`)</h2>
+        <p class="section-desc">
+          The <code>struct</code> CLI automates code generation, migrations, outbox relays, and development diagnostics.
+        </p>
+
+        <div class="tabs-container">
+          <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab(event, 'tab-cli-make')">Codegen (`struct make`)</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-cli-migrate')">Migrations (`struct migrate`)</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tab-cli-ops')">Operations & Diagnostics</button>
+          </div>
+          <div id="tab-cli-make" class="tab-content active">
+<pre><code># Scaffolding clean architecture components:
+struct make model Invoice                                          # internal/mvc/models/invoice.go
+struct make controller Invoice                                     # internal/mvc/controllers/invoice_controller.go
+struct make service Invoice                                        # internal/mvc/services/invoice_service.go
+struct make dto Invoice                                            # internal/mvc/views/invoice_dto.go
+struct make enum PaymentStatus --values=pending,completed,failed   # internal/mvc/models/payment_status.go
+struct make policy Invoice                                         # internal/platform/security/authz/invoice_policy.go
+struct make repository Invoice                                     # Dual-dialect: Postgres & MySQL repositories
+struct make event InvoicePaidV1                                    # internal/platform/events/invoice_paid_v1.go
+struct make job SendInvoiceEmail                                   # internal/support/queue/send_invoice_email_job.go
+struct make locale de                                              # internal/platform/i18n/locales/de.json
+struct make rpc BillingService                                     # internal/platform/rpc/billing_service.go</code></pre>
+          </div>
+          <div id="tab-cli-migrate" class="tab-content">
+<pre><code># Create timestamped up/down SQL files for Postgres and MySQL:
+struct migrate create create_invoices_table
+
+# Apply all pending migrations against DATABASE_URL:
+struct migrate up
+
+# Rollback the last applied migration batch:
+struct migrate down</code></pre>
+          </div>
+          <div id="tab-cli-ops" class="tab-content">
+<pre><code># Diagnostics, inspection, and operations:
+struct serve          # Boots HTTP API server
+struct routes         # Displays full declarative route table (offline, no socket bound)
+struct health         # Probes local /readyz endpoint
+struct version        # Displays commit, version, and compiler metadata
+struct doctor         # Verifies environment, DB connectivity, and i18n completeness
+struct relay          # Runs standalone transactional outbox polling daemon
+struct report signups # Runs aggregate SQL report over the last 30 days</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="doc-footer">
+        <div>Struct Framework &copy; 2026. Built by <strong>Loai Kanou</strong> with MIT License.</div>
+        <div class="footer-links">
+          <a href="https://github.com/orgs/struct-kit/framework" target="_blank">GitHub</a>
+          <a href="https://struct-kit.github.io" target="_blank">Docs Portal</a>
+          <a href="../README.md">README</a>
+          <a href="FRAMEWORK_GUIDE.md">Architecture Guide</a>
+          <a href="API_REFERENCE.md">API Reference</a>
+          <a href="CLI_REFERENCE.md">CLI Manual</a>
+          <a href="DOCUMENTATION.md">Tech Docs</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    // Tab Switcher
+    function switchTab(evt, tabId) {
+      const container = evt.currentTarget.closest('.tabs-container');
+      container.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      container.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    // Quick Copy
+    function copyCommand(elemId) {
+      const text = document.getElementById(elemId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = event.currentTarget;
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => { btn.innerText = orig; }, 1800);
+      });
+    }
+
+    // Live Search Filter
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const q = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#routeTable tbody tr');
+        rows.forEach(r => {
+          const text = r.innerText.toLowerCase();
+          r.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+
+      // Keyboard Shortcut '/' to focus search
+      window.addEventListener('keydown', function(e) {
+        if (e.key === '/' && document.activeElement !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
