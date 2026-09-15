@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struct Framework — Comprehensive Architecture & Engineering Guide</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <meta name="description" content="Struct Framework architecture guide — Clean Philosophy, AppContext Request Lifecycle, Typed Error Architecture, Multi-Database, Security Auth Stack." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(31, 41, 55, 0.85);
+      --bg-glass: rgba(17, 24, 39, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --primary-light: #818cf8;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --code-bg: #090d16;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --header-height: 64px;
+      --sidebar-width: 280px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.1) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    section {
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.75;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: var(--primary-light);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px 22px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      line-height: 1.65;
+      margin: 16px 0 28px;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 40px 0;
+    }
+
+    ul, ol {
+      color: var(--text-secondary);
+      margin-left: 22px;
+      margin-bottom: 16px;
+      line-height: 1.85;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    li strong {
+      color: var(--text-primary);
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height);
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .brand-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-text span {
+      color: var(--primary-light);
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      justify-content: center;
+      max-width: 640px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 14px;
+      width: 100%;
+      max-width: 420px;
+      transition: all 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-box svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-family: var(--font-sans);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-secondary);
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid var(--border-color);
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.18);
+      background: rgba(31, 41, 55, 0.8);
+    }
+
+    .nav-btn.primary {
+      background: linear-gradient(135deg, var(--primary), rgba(99, 102, 241, 0.65));
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .nav-btn.primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.active {
+      background: rgba(6, 182, 212, 0.14);
+      border-color: var(--accent);
+      color: #22d3ee;
+    }
+
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    @media (max-width: 960px) {
+      .nav-center { display: none; }
+      .nav-btn { display: none; }
+      .nav-btn.primary, .nav-btn.active { display: inline-block; }
+      .mobile-toggle { display: block; }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      position: fixed;
+      top: var(--header-height);
+      bottom: 0;
+      left: 0;
+      background: rgba(11, 15, 25, 0.7);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      padding: 24px 16px;
+      z-index: 90;
+    }
+
+    .sidebar-group {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 12px 8px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      margin-left: 0;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.14);
+    }
+
+    .sidebar-link.active {
+      color: var(--primary-light);
+      font-weight: 600;
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Main Content */
+    .content-area {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px 120px;
+      max-width: 1240px;
+    }
+
+    /* Hero */
+    .hero-section {
+      padding: 30px 0 50px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 48px;
+    }
+
+    .hero-badge-strip {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-green {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .pill-blue {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--primary-light);
+    }
+
+    .pill-cyan {
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #22d3ee;
+    }
+
+    .pill-amber {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+
+    .pill-red {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 860px;
+      line-height: 1.75;
+    }
+
+    /* Section Headings */
+    .section-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 56px 0 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-desc {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 900px;
+      margin-bottom: 28px;
+      line-height: 1.75;
+    }
+
+    /* Architecture Diagram Card */
+    .arch-diagram-card {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 28px;
+      margin: 28px 0 40px;
+      overflow-x: auto;
+    }
+
+    .arch-diagram {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      white-space: pre;
+    }
+
+    .arch-diagram .layer-cmd { color: #f87171; }
+    .arch-diagram .layer-app { color: #fbbf24; }
+    .arch-diagram .layer-mvc { color: var(--primary-light); }
+    .arch-diagram .layer-platform { color: #22d3ee; }
+    .arch-diagram .layer-support { color: #34d399; }
+    .arch-diagram .arch-border { color: var(--text-muted); }
+    .arch-diagram .arch-label { color: #fff; font-weight: 700; }
+    .arch-diagram .arch-path { color: #e2e8f0; }
+
+    /* Content Card */
+    .content-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 26px 28px;
+      margin: 20px 0 32px;
+    }
+
+    .content-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+
+    /* Request Lifecycle Flow */
+    .lifecycle-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin: 20px 0;
+    }
+
+    .lifecycle-step {
+      display: grid;
+      grid-template-columns: 60px 1fr;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .lifecycle-step:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+      background: var(--bg-card-hover);
+    }
+
+    .lifecycle-num {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-align: center;
+    }
+
+    .lifecycle-body {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .lifecycle-name {
+      font-weight: 600;
+      color: #fff;
+      font-size: 0.92rem;
+    }
+
+    .lifecycle-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .lifecycle-arrow {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+
+    /* Tables */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 40px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .api-table th {
+      text-align: left;
+      padding: 14px 18px;
+      background: rgba(17, 24, 39, 0.92);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .api-table td {
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+    }
+
+    .api-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .api-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: #fff;
+    }
+
+    .api-table td code {
+      font-size: 0.8rem;
+    }
+
+    /* Callouts */
+    .callout {
+      border-radius: 10px;
+      padding: 18px 22px;
+      margin: 24px 0;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      font-size: 0.94rem;
+      line-height: 1.7;
+    }
+
+    .callout-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .callout-tip {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: #a5f3fc;
+    }
+
+    .callout-note {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #c7d2fe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fde68a;
+    }
+
+    .callout-danger {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #fecaca;
+    }
+
+    /* Footer */
+    .doc-footer {
+      border-top: 1px solid var(--border-color);
+      padding: 48px 0 24px;
+      margin-top: 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-light);
+    }
+
+    @media (max-width: 960px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        width: 300px;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+      }
+      .content-area {
+        margin-left: 0;
+        padding: 28px 20px 80px;
+      }
+      .hero-title {
+        font-size: 1.85rem;
+      }
+      .lifecycle-step {
+        grid-template-columns: 48px 1fr;
+        padding: 10px 12px;
+      }
+      .doc-footer {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <a href="index.html" class="brand-group">
+      <div class="brand-logo">S</div>
+      <div class="brand-text">Struct<span>.Framework</span></div>
+    </a>
+
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <div class="nav-center">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input type="text" id="globalSearch" class="search-input" placeholder="Search architecture, layers, patterns, security... (/)" />
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <a href="api.html" class="nav-btn">API Reference</a>
+      <a href="cli.html" class="nav-btn">CLI Manual</a>
+      <a href="guide.html" class="nav-btn primary active">Architecture Guide</a>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-label">Foundations</div>
+        <ul class="sidebar-menu">
+          <li><a href="#guide-overview" class="sidebar-link active">Philosophy &amp; Design</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Architecture</div>
+        <ul class="sidebar-menu">
+          <li><a href="#clean-architecture" class="sidebar-link">Clean Architecture Layers</a></li>
+          <li><a href="#layering-rule" class="sidebar-link">Strict Layering Rule</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Request Pipeline</div>
+        <ul class="sidebar-menu">
+          <li><a href="#appctx" class="sidebar-link">AppContext Lifecycle</a></li>
+          <li><a href="#appctx-access" class="sidebar-link">Typed Accessors</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Error System</div>
+        <ul class="sidebar-menu">
+          <li><a href="#apperr" class="sidebar-link">Typed Error Kinds</a></li>
+          <li><a href="#error-responses" class="sidebar-link">RFC 7807 Responses</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Data &amp; Events</div>
+        <ul class="sidebar-menu">
+          <li><a href="#multi-db" class="sidebar-link">Multi-Database Drivers</a></li>
+          <li><a href="#brokers" class="sidebar-link">Message Brokers</a></li>
+          <li><a href="#outbox" class="sidebar-link">Transactional Outbox</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Security</div>
+        <ul class="sidebar-menu">
+          <li><a href="#security" class="sidebar-link">Auth &amp; Defense</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Hero / Overview -->
+      <section id="guide-overview" class="hero-section">
+        <div class="hero-badge-strip">
+          <span class="status-pill pill-green">Clean Architecture</span>
+          <span class="status-pill pill-blue">Typed-First Design</span>
+          <span class="status-pill pill-cyan">Zero Runtime Reflection</span>
+          <span class="status-pill pill-amber">Explicit DI</span>
+        </div>
+
+        <h1 class="hero-title">Comprehensive Architecture &amp; Engineering Guide</h1>
+        <p class="hero-subtitle">
+          Struct is a typed-first, production-grade Go microservice framework designed around <strong style="color:#fff;">Clean Architecture</strong>, <strong style="color:#fff;">Explicit Dependency Injection</strong>, and <strong style="color:#fff;">Zero Reflection at Runtime</strong>. Every request, response, configuration value, and domain entity is represented by concrete Go structs. Struct services compile to single static binaries capable of operating standalone or as cooperative nodes in a distributed microservice cluster.
+        </p>
+      </section>
+
+      <!-- 1. Architectural Philosophy -->
+      <section id="clean-architecture">
+        <h2 class="section-title">1. Architectural Philosophy &amp; Clean Design</h2>
+        <p class="section-desc">
+          Struct organizes code into strictly isolated boundaries following Robert C. Martin's Clean Architecture and the Dependency Inversion Principle. Core business models, controllers, and services belong to the domain; native wire drivers, security authenticators, and telemetry belong to the platform.
+        </p>
+
+        <div class="arch-diagram-card">
+<pre class="arch-diagram"><span class="arch-border">+-------------------------------------------------------------------------+</span>
+<span class="arch-border">|</span>  <span class="arch-label">Clean Architecture</span>                                                     <span class="arch-border">|</span>
+<span class="arch-border">+-------------------------------------------------------------------------+</span>
+<span class="arch-border">|</span>  <span class="layer-cmd">Cmd Layer</span>              <span class="arch-path">cmd/api (HTTP server)   cmd/struct (CLI tool)</span>   <span class="arch-border">|</span>
+<span class="arch-border">+-------------------------------------------------------------------------+</span>
+<span class="arch-border">|</span>  <span class="layer-app">Application Layer</span>      <span class="arch-path">internal/app (Composition Root, Wiring, Routes)</span> <span class="arch-border">|</span>
+<span class="arch-border">+-------------------------------------------------------------------------+</span>
+<span class="arch-border">|</span>  <span class="layer-mvc">MVC / Domain Layer</span>     <span class="arch-path">internal/mvc</span>                                    <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">models/     services/   controllers/   views/</span>   <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">apperr/ (Typed Domain Error Hierarchy)</span>         <span class="arch-border">|</span>
+<span class="arch-border">+-------------------------------------------------------------------------+</span>
+<span class="arch-border">|</span>  <span class="layer-platform">Platform Layer</span>         <span class="arch-path">internal/platform</span>                               <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">http/ (router, middleware, appctx)</span>             <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">security/ (authn, totp, webauthn, authz)</span>       <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">store/ (postgres, mysql, migrations)</span>           <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">events/ (publisher, broker, outbox relay)</span>      <span class="arch-border">|</span>
+<span class="arch-border">|</span>                         <span class="arch-path">metrics/    tracing/    logging/    procs/</span>      <span class="arch-border">|</span>
+<span class="arch-border">+-------------------------------------------------------------------------+</span>
+<span class="arch-border">|</span>  <span class="layer-support">Support Layer</span>          <span class="arch-path">internal/support (crypto, validation, queue)</span>   <span class="arch-border">|</span>
+<span class="arch-border">+-------------------------------------------------------------------------+</span></pre>
+        </div>
+
+        <div id="layering-rule">
+          <h3 style="font-size:1.2rem; color:#fff; margin: 24px 0 14px;">The Strict Layering Rule</h3>
+          <div class="callout callout-note">
+            <div class="callout-icon">🛡️</div>
+            <div>
+              <strong>A foundational invariant is enforced across the codebase:</strong><br>
+              <strong style="color:#fff; font-size:1.02rem;">internal/platform never imports internal/mvc.</strong>
+              <br><br>
+              <ul style="margin-top:10px;">
+                <li><strong style="color:#fff;">Platform components</strong> (HTTP engine, security primitives, database drivers, metrics, tracing, events) have zero knowledge of business models (<code>models.User</code>) or application error wrappers (<code>apperr.Error</code>).</li>
+                <li>When a platform component needs domain capability (such as <code>middleware.Auth</code> needing token verification, or <code>/readyz</code> needing a database ping), it defines a <strong style="color:#fff;">local single-method interface</strong> (<code>TokenVerifier</code>, <code>Pinger</code>, <code>LocaleResolver</code>).</li>
+                <li><strong style="color:#fff;">internal/app</strong> is the Composition Root where platform types and controller types meet.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Request Lifecycle & AppContext -->
+      <section id="appctx">
+        <h2 class="section-title">2. Request Lifecycle &amp; <code>AppContext</code></h2>
+        <p class="section-desc">
+          Struct provides a unified request lifecycle context via <code>internal/platform/http/appctx</code>. As a request traverses the middleware pipeline, contextual metadata is progressively attached to a thread-safe <code>RequestContext</code>.
+        </p>
+
+        <div class="content-card">
+          <h3>Middleware Pipeline Execution Order</h3>
+          <div class="lifecycle-flow">
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">1.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Tracing</span>
+                <span class="lifecycle-desc">— Parses traceparent or generates new TraceID &amp; SpanID</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">2.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Recover</span>
+                <span class="lifecycle-desc">— Guards against panics, formats JSON 500 error</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">3.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">RequestID</span>
+                <span class="lifecycle-desc">— Reuses X-Request-ID or generates unique correlation ID</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">4.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">RealIP</span>
+                <span class="lifecycle-desc">— Resolves client IP from trusted reverse proxy headers</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">5.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">SecurityHeaders</span>
+                <span class="lifecycle-desc">— Injects HSTS, X-Content-Type-Options, Frame-Options</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">6.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">RateLimit</span>
+                <span class="lifecycle-desc">— 16-shard FNV-hash token bucket per client IP</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">7.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">CORS</span>
+                <span class="lifecycle-desc">— Deny-by-default cross-origin validation</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">8.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Locale</span>
+                <span class="lifecycle-desc">— Resolves language (?locale= → Accept-Language → default)</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">9.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">AccessLog</span>
+                <span class="lifecycle-desc">— Structured slog audit log with RequestID and TraceID</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">10.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Metrics</span>
+                <span class="lifecycle-desc">— Latency histogram &amp; request counter</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">11.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Timeout</span>
+                <span class="lifecycle-desc">— Context deadline propagation (10s default)</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">12.</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Auth</span>
+                <span class="lifecycle-desc">— Validates Bearer JWT; rejects invalid tokens with 401; injects UserID to AppContext when valid</span>
+              </div>
+            </div>
+            <div class="lifecycle-arrow">▼</div>
+            <div class="lifecycle-step">
+              <div class="lifecycle-num">→</div>
+              <div class="lifecycle-body">
+                <span class="lifecycle-name">Mux &amp; Controller</span>
+                <span class="lifecycle-desc">— Handlers access appctx.FromContext(ctx)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="appctx-access">
+          <h3 style="font-size:1.2rem; color:#fff; margin: 32px 0 14px;">Accessing AppContext in Handlers</h3>
+          <p>Handlers and services retrieve request metadata with <strong>zero type assertions</strong>:</p>
+<pre><code>func (c *UserController) GetProfile(w http.ResponseWriter, r *http.Request) {
+    ctx := r.Context()
+
+    // Direct typed accessors
+    reqID := appctx.RequestID(ctx)
+    traceID := appctx.TraceID(ctx)
+    locale := appctx.Locale(ctx)
+
+    // User authentication verification
+    userID, ok := appctx.UserID(ctx)
+    if !ok {
+        writeError(w, http.StatusUnauthorized, "authentication required", nil)
+        return
+    }
+
+    // Structured logging with context automatically includes request_id & trace_id
+    c.logger.InfoContext(ctx, "fetching user profile", "user_id", userID)
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- 3. Typed Error Architecture -->
+      <section id="apperr">
+        <h2 class="section-title">3. Typed Error Architecture (<code>apperr</code>)</h2>
+        <p class="section-desc">
+          Services never return raw strings or ad-hoc HTTP status codes. They return typed domain errors defined in <code>internal/mvc/apperr</code>.
+        </p>
+
+        <h3 id="error-kinds" style="font-size:1.2rem; color:#fff; margin: 24px 0 14px;">Error Kinds &amp; Canonical Status Codes</h3>
+        <table class="api-table">
+          <thead>
+            <tr>
+              <th>Kind</th>
+              <th>HTTP Status</th>
+              <th>Code</th>
+              <th>Typical Scenario</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>KindBadRequest</code></td>
+              <td><span style="color:#fbbf24;">400 Bad Request</span></td>
+              <td><code>BAD_REQUEST</code></td>
+              <td>Malformed syntax or non-JSON body</td>
+            </tr>
+            <tr>
+              <td><code>KindUnauthorized</code></td>
+              <td><span style="color:#f87171;">401 Unauthorized</span></td>
+              <td><code>UNAUTHORIZED</code></td>
+              <td>Missing or invalid authentication</td>
+            </tr>
+            <tr>
+              <td><code>KindForbidden</code></td>
+              <td><span style="color:#f87171;">403 Forbidden</span></td>
+              <td><code>FORBIDDEN</code></td>
+              <td>Access denied by policy / ownership check</td>
+            </tr>
+            <tr>
+              <td><code>KindNotFound</code></td>
+              <td><span style="color:#f87171;">404 Not Found</span></td>
+              <td><code>NOT_FOUND</code></td>
+              <td>Resource does not exist</td>
+            </tr>
+            <tr>
+              <td><code>KindConflict</code></td>
+              <td><span style="color:#fbbf24;">409 Conflict</span></td>
+              <td><code>RESOURCE_CONFLICT</code></td>
+              <td>Unique key violation (e.g. email in use)</td>
+            </tr>
+            <tr>
+              <td><code>KindValidation</code></td>
+              <td><span style="color:#fbbf24;">422 Unprocessable</span></td>
+              <td><code>VALIDATION_FAILED</code></td>
+              <td>Field-level business validation error</td>
+            </tr>
+            <tr>
+              <td><code>KindLocked</code></td>
+              <td><span style="color:#fbbf24;">423 Locked</span></td>
+              <td><code>ACCOUNT_LOCKED</code></td>
+              <td>Account locked due to repeated auth failures</td>
+            </tr>
+            <tr>
+              <td><code>KindTooManyRequests</code></td>
+              <td><span style="color:#fbbf24;">429 Too Many Req</span></td>
+              <td><code>RATE_LIMIT_EXCEEDED</code></td>
+              <td>Rate limit burst exhausted</td>
+            </tr>
+            <tr>
+              <td><code>KindInternal</code></td>
+              <td><span style="color:#ef4444;">500 Server Error</span></td>
+              <td><code>INTERNAL_SERVER_ERROR</code></td>
+              <td>Unhandled database or system fault</td>
+            </tr>
+            <tr>
+              <td><code>KindUnavailable</code></td>
+              <td><span style="color:#ef4444;">503 Unavailable</span></td>
+              <td><code>SERVICE_UNAVAILABLE</code></td>
+              <td>Database or dependency unreachable</td>
+            </tr>
+            <tr>
+              <td><code>KindTimeout</code></td>
+              <td><span style="color:#ef4444;">504 Gateway Timeout</span></td>
+              <td><code>REQUEST_TIMEOUT</code></td>
+              <td>Upstream or downstream deadline expired</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div id="error-responses">
+          <h3 style="font-size:1.2rem; color:#fff; margin: 32px 0 14px;">Unified RFC 7807-Style Error Responses</h3>
+          <p>All error responses generated by <code>internal/mvc/controllers/render.go</code> share a deterministic JSON layout:</p>
+<pre><code>{
+  "error": "The specified user account is locked due to repeated failed logins",
+  "code": "ACCOUNT_LOCKED",
+  "request_id": "c7f91a08b3e64f20",
+  "fields": {
+    "password": "too many attempts"
+  }
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- 4. Multi-Database & Message Broker Architecture -->
+      <section id="multi-db">
+        <h2 class="section-title">4. Multi-Database &amp; Message Broker Architecture</h2>
+        <p class="section-desc">
+          Struct abstracts data storage and event publishing behind declarative contracts, allowing swapping between in-memory mock implementations and live distributed systems without altering domain services.
+        </p>
+
+        <div class="content-card">
+          <h3 id="db-dialects">Database Dialects</h3>
+          <ul>
+            <li><strong style="color:#34d399;">memory</strong> — In-process atomic map store. Requires zero external containers; ideal for tests and bootstrap evaluation.</li>
+            <li><strong style="color:var(--primary-light);">postgres</strong> — Wire protocol v3.0 driver supporting cleartext &amp; MD5 authentication, parameter binding, transactions, and migration runner.</li>
+            <li><strong style="color:#22d3ee;">mysql</strong> — Binary protocol client supporting <code>mysql_native_password</code> authentication, binary statement execution, transactions, and migration runner.</li>
+          </ul>
+        </div>
+
+        <div id="brokers" class="content-card">
+          <h3>Message Broker Options</h3>
+          <p>Configure via <code>MESSAGE_BROKER</code> environment variable:</p>
+          <ul>
+            <li><strong style="color:#34d399;">memory</strong> — Synchronous in-memory event bus with subscriber callbacks.</li>
+            <li><strong style="color:var(--text-muted);">log</strong> — Logs every dispatched event through structured logging without external network dependencies.</li>
+            <li><strong style="color:#fbbf24;">redis</strong> — Streams backend for distributed pub/sub.</li>
+            <li><strong style="color:var(--primary-light);">nats</strong> — High-throughput distributed messaging.</li>
+            <li><strong style="color:#f87171;">kafka</strong> — Distributed commit log with partition ordering.</li>
+          </ul>
+        </div>
+
+        <div id="outbox">
+          <h3 style="font-size:1.2rem; color:#fff; margin: 32px 0 14px;">Transactional Outbox Pattern</h3>
+          <div class="callout callout-tip">
+            <div class="callout-icon">📦</div>
+            <div>
+              Domain mutations write events into an <code>outbox_events</code> table inside the same atomic database transaction. A decoupled relay daemon (<code>struct relay</code>) polls undispatched rows and guarantees at-least-once delivery to downstream consumers.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Security & Authentication Deep Dive -->
+      <section id="security">
+        <h2 class="section-title">5. Security &amp; Authentication Deep Dive</h2>
+
+        <div class="content-card">
+          <ol style="list-style:none; margin-left:0;">
+            <li style="margin-bottom:20px;">
+              <strong style="color:#fff;">1. Defensive JWT Token Stack:</strong>
+              <ul>
+                <li>Strictly HS256-enforced. Header <code>alg</code> is ignored during algorithm verification to prevent <code>alg: none</code> confusion attacks.</li>
+                <li>Constant-time verification using <code>crypto/hmac.Equal</code>.</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:20px;">
+              <strong style="color:#fff;">2. Two-Factor Authentication (TOTP):</strong>
+              <ul>
+                <li>RFC 6238 implementation with 30-second time steps, ±1 drift window tolerance, and encrypted secret storage at rest using AES-256-GCM.</li>
+                <li>Single-use 10-character backup codes hashed with SHA-256.</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:20px;">
+              <strong style="color:#fff;">3. WebAuthn / FIDO2 Passkeys:</strong>
+              <ul>
+                <li>Native CBOR and COSE ES256 parser supporting passkeys both as MFA and passwordless primary authentication.</li>
+              </ul>
+            </li>
+            <li style="margin-bottom:20px;">
+              <strong style="color:#fff;">4. Brute-Force Protection:</strong>
+              <ul>
+                <li>Exponential login lockout: 5 failed attempts locks an account for 15 minutes, with failure counts reset upon successful login.</li>
+              </ul>
+            </li>
+            <li>
+              <strong style="color:#fff;">5. PII Masking:</strong>
+              <ul>
+                <li>Structured logging automatically redacts passwords, tokens, API keys, and authorization headers.</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="doc-footer">
+        <div>Struct Framework &copy; 2026. Built by <strong>Loai Kanou</strong> with MIT License.</div>
+        <div class="footer-links">
+          <a href="https://github.com/orgs/struct-kit/framework" target="_blank">GitHub</a>
+          <a href="https://struct-kit.github.io/docs/" target="_blank">Docs Portal</a>
+          <a href="index.html">Home</a>
+          <a href="guide.html">Architecture Guide</a>
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Manual</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('open');
+      }
+    }
+
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && window.innerWidth <= 960) {
+          sidebar.classList.remove('open');
+        }
+      });
+    });
+
+    const sections = document.querySelectorAll('section[id], div[id], h3[id]');
+    const navLinks = document.querySelectorAll('.sidebar-link');
+
+    window.addEventListener('scroll', () => {
+      let currentSection = '';
+      const scrollY = window.pageYOffset;
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 140;
+        const sectionHeight = section.offsetHeight;
+        if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      if (currentSection) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${currentSection}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const q = e.target.value.toLowerCase().trim();
+        const sections = document.querySelectorAll('section');
+        sections.forEach(s => {
+          const text = s.innerText.toLowerCase();
+          s.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === '/' && document.activeElement !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      });
+    }
+  </script>
+</body>
+</html>

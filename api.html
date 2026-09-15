@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Struct Framework — HTTP API Reference</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico" />
+  <meta name="description" content="Complete HTTP API Reference for Struct Framework — health checks, authentication, users, TOTP, WebAuthn passkeys, and diagnostic endpoints." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(31, 41, 55, 0.85);
+      --bg-glass: rgba(17, 24, 39, 0.65);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.5);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --primary-light: #818cf8;
+      --accent: #06b6d4;
+      --accent-glow: rgba(6, 182, 212, 0.3);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --code-bg: #090d16;
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+      --header-height: 64px;
+      --sidebar-width: 280px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.1) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+
+    section {
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+
+    p {
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: var(--primary-light);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px 22px;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      line-height: 1.65;
+      margin: 16px 0 28px;
+    }
+
+    pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 40px 0;
+    }
+
+    /* Top Navigation Bar */
+    .top-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: var(--header-height);
+      background: rgba(11, 15, 25, 0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    .brand-text {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-text span {
+      color: var(--primary-light);
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      justify-content: center;
+      max-width: 640px;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 8px 14px;
+      width: 100%;
+      max-width: 420px;
+      transition: all 0.2s ease;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+    }
+
+    .search-box svg {
+      width: 16px;
+      height: 16px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-family: var(--font-sans);
+    }
+
+    .search-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-secondary);
+      background: rgba(17, 24, 39, 0.6);
+      border: 1px solid var(--border-color);
+      transition: all 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.18);
+      background: rgba(31, 41, 55, 0.8);
+    }
+
+    .nav-btn.primary {
+      background: linear-gradient(135deg, var(--primary), rgba(99, 102, 241, 0.65));
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
+
+    .nav-btn.primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.active {
+      background: rgba(6, 182, 212, 0.14);
+      border-color: var(--accent);
+      color: #22d3ee;
+    }
+
+    /* Mobile Nav Toggle */
+    .mobile-toggle {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 6px 10px;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+
+    @media (max-width: 960px) {
+      .nav-center { display: none; }
+      .nav-btn { display: none; }
+      .nav-btn.primary, .nav-btn.active { display: inline-block; }
+      .mobile-toggle { display: block; }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      position: fixed;
+      top: var(--header-height);
+      bottom: 0;
+      left: 0;
+      background: rgba(11, 15, 25, 0.7);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+      padding: 24px 16px;
+      z-index: 90;
+    }
+
+    .sidebar-group {
+      margin-bottom: 24px;
+    }
+
+    .sidebar-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      padding: 0 12px 8px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      color: #fff;
+      background: rgba(99, 102, 241, 0.14);
+    }
+
+    .sidebar-link.active {
+      color: var(--primary-light);
+      font-weight: 600;
+      border-left: 3px solid var(--primary);
+    }
+
+    /* Main Content */
+    .content-area {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      padding: 40px 48px 120px;
+      max-width: 1240px;
+    }
+
+    /* Hero */
+    .hero-section {
+      padding: 30px 0 50px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 48px;
+    }
+
+    .hero-badge-strip {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .status-pill {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-green {
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+    }
+
+    .pill-blue {
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: var(--primary-light);
+    }
+
+    .pill-cyan {
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #22d3ee;
+    }
+
+    .hero-title {
+      font-size: 2.6rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #ffffff 40%, #9ca3af 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 840px;
+      line-height: 1.7;
+    }
+
+    /* Section Headings */
+    .section-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 56px 0 16px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-desc {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      max-width: 860px;
+      margin-bottom: 28px;
+      line-height: 1.7;
+    }
+
+    /* Endpoint Blocks */
+    .endpoint-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin: 20px 0 32px;
+      transition: border-color 0.2s ease;
+    }
+
+    .endpoint-block:hover {
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .endpoint-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .endpoint-path {
+      font-family: var(--font-mono);
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .method-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      text-align: center;
+      min-width: 58px;
+    }
+
+    .method-get { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .method-post { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+    .method-delete { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .method-patch { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+
+    .endpoint-desc {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      line-height: 1.65;
+    }
+
+    .response-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 20px 0 8px;
+    }
+
+    .response-label .status-ok {
+      color: #34d399;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .response-label .status-created {
+      color: #22d3ee;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .response-label .status-nocontent {
+      color: #a3e635;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .response-label .status-unavailable {
+      color: #fbbf24;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    .response-label .status-notfound {
+      color: #f87171;
+      text-transform: none;
+      font-weight: 600;
+    }
+
+    /* Tables */
+    .api-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 40px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .api-table th {
+      text-align: left;
+      padding: 14px 18px;
+      background: rgba(17, 24, 39, 0.92);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .api-table td {
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-secondary);
+    }
+
+    .api-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .api-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+      color: #fff;
+    }
+
+    /* Alerts / Callouts */
+    .callout {
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 24px 0;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .callout-tip {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.25);
+      color: #a5f3fc;
+    }
+
+    .callout-note {
+      background: rgba(99, 102, 241, 0.08);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      color: #c7d2fe;
+    }
+
+    .callout-warning {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      color: #fde68a;
+    }
+
+    /* Command Box */
+    .command-box {
+      background: var(--code-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 720px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      margin: 16px 0;
+    }
+
+    .command-text {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: #38bdf8;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      padding: 6px 12px;
+      color: #fff;
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .copy-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Footer */
+    .doc-footer {
+      border-top: 1px solid var(--border-color);
+      padding: 48px 0 24px;
+      margin-top: 80px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--primary-light);
+    }
+
+    /* Responsive */
+    @media (max-width: 960px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        width: 300px;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+      }
+      .content-area {
+        margin-left: 0;
+        padding: 28px 20px 80px;
+      }
+      .hero-title {
+        font-size: 1.9rem;
+      }
+      .doc-footer {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="top-nav">
+    <a href="index.html" class="brand-group">
+      <div class="brand-logo">S</div>
+      <div class="brand-text">Struct<span>.Framework</span></div>
+    </a>
+
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+
+    <div class="nav-center">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+        </svg>
+        <input type="text" id="globalSearch" class="search-input" placeholder="Search endpoints, routes, status codes... (/)" />
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <a href="api.html" class="nav-btn active">API Reference</a>
+      <a href="cli.html" class="nav-btn">CLI Manual</a>
+      <a href="guide.html" class="nav-btn primary">Architecture Guide</a>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-label">Overview</div>
+        <ul class="sidebar-menu">
+          <li><a href="#api-overview" class="sidebar-link active">Introduction</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">System & Diagnostics</div>
+        <ul class="sidebar-menu">
+          <li><a href="#healthz" class="sidebar-link">GET /healthz</a></li>
+          <li><a href="#readyz" class="sidebar-link">GET /readyz</a></li>
+          <li><a href="#metrics" class="sidebar-link">GET /metrics</a></li>
+          <li><a href="#pprof" class="sidebar-link">GET /debug/pprof/*</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">User Management</div>
+        <ul class="sidebar-menu">
+          <li><a href="#create-user" class="sidebar-link">POST /v1/users</a></li>
+          <li><a href="#get-user" class="sidebar-link">GET /v1/users/{id}</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">Authentication</div>
+        <ul class="sidebar-menu">
+          <li><a href="#auth-login" class="sidebar-link">POST /v1/auth/login</a></li>
+          <li><a href="#auth-refresh" class="sidebar-link">POST /v1/auth/refresh</a></li>
+          <li><a href="#auth-logout" class="sidebar-link">POST /v1/auth/logout</a></li>
+          <li><a href="#auth-logout-all" class="sidebar-link">POST /v1/auth/logout-all ✱</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">TOTP 2FA</div>
+        <ul class="sidebar-menu">
+          <li><a href="#totp-enroll" class="sidebar-link">POST /totp/enroll ✱</a></li>
+          <li><a href="#totp-confirm" class="sidebar-link">POST /totp/confirm ✱</a></li>
+          <li><a href="#totp-delete" class="sidebar-link">DELETE /totp ✱</a></li>
+          <li><a href="#totp-backup" class="sidebar-link">GET /totp/backup-codes ✱</a></li>
+          <li><a href="#mfa-totp" class="sidebar-link">POST /mfa/totp</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-label">WebAuthn Passkeys</div>
+        <ul class="sidebar-menu">
+          <li><a href="#passkey-reg-begin" class="sidebar-link">POST /passkeys/register/begin ✱</a></li>
+          <li><a href="#passkey-reg-finish" class="sidebar-link">POST /passkeys/register/finish ✱</a></li>
+          <li><a href="#passkey-list" class="sidebar-link">GET /passkeys ✱</a></li>
+          <li><a href="#passkey-login-begin" class="sidebar-link">POST /passkeys/login/begin</a></li>
+          <li><a href="#passkey-login-finish" class="sidebar-link">POST /passkeys/login/finish</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      <!-- Hero / Overview -->
+      <section id="api-overview" class="hero-section">
+        <div class="hero-badge-strip">
+          <span class="status-pill pill-green">Content-Type: application/json</span>
+          <span class="status-pill pill-blue">Bearer Token Auth</span>
+          <span class="status-pill pill-cyan">RFC 7807 Error Format</span>
+        </div>
+
+        <h1 class="hero-title">Complete HTTP API Reference</h1>
+        <p class="hero-subtitle">
+          All requests and responses use <code>Content-Type: application/json; charset=utf-8</code> unless otherwise specified. Routes marked with <strong style="color:#fff;">✱</strong> require an <code>Authorization: Bearer &lt;access_token&gt;</code> header.
+        </p>
+      </section>
+
+      <!-- 1. System & Diagnostic Endpoints -->
+      <section id="system-endpoints">
+        <h2 class="section-title">1. System &amp; Diagnostic Endpoints</h2>
+        <p class="section-desc">Health probes, readiness checks, metrics exposition, and runtime profiling endpoints for production observability.</p>
+
+        <div id="healthz" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/healthz</span>
+          </div>
+          <p class="endpoint-desc">Process liveness check. Always returns <code>200 OK</code> if the HTTP process is responsive.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "status": "ok",
+  "app": "struct-framework",
+  "version": "1.0.0",
+  "uptime": "1h24m10s"
+}</code></pre>
+        </div>
+
+        <div id="readyz" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/readyz</span>
+          </div>
+          <p class="endpoint-desc">Comprehensive readiness probe. Verifies database and message broker availability. Returns <code>503 Service Unavailable</code> if any registered dependency fails.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK — Ready)</span></div>
+<pre><code>{
+  "status": "ready",
+  "checks": {
+    "database": "healthy",
+    "broker": "healthy"
+  }
+}</code></pre>
+          <div class="response-label">Response <span class="status-unavailable">(503 Service Unavailable — Degraded)</span></div>
+<pre><code>{
+  "status": "unavailable",
+  "checks": {
+    "database": "unavailable",
+    "broker": "healthy"
+  }
+}</code></pre>
+        </div>
+
+        <div id="metrics" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/metrics</span>
+          </div>
+          <p class="endpoint-desc">Prometheus text exposition format. Exposes standard HTTP metrics and Go runtime indicators.</p>
+          <div class="response-label">Sample Output</div>
+<pre><code># HELP go_goroutines Number of goroutines currently existing
+# TYPE go_goroutines gauge
+go_goroutines 14
+# HELP http_requests_total Total number of HTTP requests processed
+# TYPE http_requests_total counter
+http_requests_total{method="GET",pattern="/v1/users/{id}",status="200"} 42
+# HELP http_request_duration_seconds HTTP request duration in seconds
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{le="0.005"} 38
+http_request_duration_seconds_bucket{le="+Inf"} 42
+http_request_duration_seconds_sum 0.1245
+http_request_duration_seconds_count 42</code></pre>
+        </div>
+
+        <div id="pprof" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/debug/pprof/*</span>
+          </div>
+          <p class="endpoint-desc">Runtime profiling endpoints (available when <code>PPROF_ENABLED=true</code>):</p>
+          <ul style="color: var(--text-secondary); margin-left: 20px; line-height: 1.9;">
+            <li><code>GET /debug/pprof/</code> — HTML profiling index</li>
+            <li><code>GET /debug/pprof/cmdline</code> — Command-line invocation string</li>
+            <li><code>GET /debug/pprof/profile</code> — CPU profile (30s sample)</li>
+            <li><code>GET /debug/pprof/symbol</code> — Program counters to symbols lookup</li>
+            <li><code>GET /debug/pprof/trace</code> — Execution trace</li>
+            <li><code>GET /debug/pprof/goroutine</code> — Goroutine stack dump</li>
+            <li><code>GET /debug/pprof/heap</code> — Memory allocation profile</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- 2. User Management Endpoints -->
+      <section id="user-endpoints">
+        <h2 class="section-title">2. User Management Endpoints</h2>
+        <p class="section-desc">Account creation and user profile retrieval endpoints.</p>
+
+        <div id="create-user" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/users</span>
+          </div>
+          <p class="endpoint-desc">Creates a new user account.</p>
+          <div class="response-label">Request Body</div>
+<pre><code>{
+  "email": "developer@example.com",
+  "password": "CorrectHorseBatteryStaple123!",
+  "locale": "en"
+}</code></pre>
+          <div class="response-label">Response <span class="status-created">(201 Created)</span></div>
+<pre><code>{
+  "id": "usr_9c8b7a6d5e4f",
+  "email": "developer@example.com",
+  "locale": "en",
+  "created_at": "2026-09-15T08:00:00Z"
+}</code></pre>
+        </div>
+
+        <div id="get-user" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/v1/users/{id}</span>
+          </div>
+          <p class="endpoint-desc">Retrieves user account by identifier.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "id": "usr_9c8b7a6d5e4f",
+  "email": "developer@example.com",
+  "locale": "en",
+  "created_at": "2026-09-15T08:00:00Z"
+}</code></pre>
+          <div class="response-label">Response <span class="status-notfound">(404 Not Found)</span></div>
+<pre><code>{
+  "error": "user not found",
+  "code": "NOT_FOUND",
+  "request_id": "req-98765"
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- 3. Authentication & Security Endpoints -->
+      <section id="auth-endpoints">
+        <h2 class="section-title">3. Authentication &amp; Security Endpoints</h2>
+        <div class="callout callout-note">
+          <div style="font-size: 1.25rem;">💡</div>
+          <div>Available when <code>DB_DRIVER=postgres</code> or <code>DB_DRIVER=mysql</code>. Provides password auth, token refresh, logout, TOTP 2FA, and WebAuthn passkeys.</div>
+        </div>
+
+        <div id="auth-login" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/login</span>
+          </div>
+          <p class="endpoint-desc">Password authentication. Returns token pair or MFA challenge ticket if 2FA is active.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "email": "developer@example.com",
+  "password": "CorrectHorseBatteryStaple123!"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK — Standard Login)</span></div>
+<pre><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "rft_8a7b6c5d4e3f2a1b0c9d8e7f"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK — MFA Challenge Required)</span></div>
+<pre><code>{
+  "mfa_required": true,
+  "mfa_ticket": "mfa_ticket_0a1b2c3d4e5f"
+}</code></pre>
+        </div>
+
+        <div id="auth-refresh" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/refresh</span>
+          </div>
+          <p class="endpoint-desc">Rotates an existing refresh token for a fresh token pair.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "refresh_token": "rft_8a7b6c5d4e3f2a1b0c9d8e7f"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "rft_new_fresh_token_hash"
+}</code></pre>
+        </div>
+
+        <div id="auth-logout" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/logout</span>
+          </div>
+          <p class="endpoint-desc">Revokes the session corresponding to the submitted refresh token.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "refresh_token": "rft_8a7b6c5d4e3f2a1b0c9d8e7f"
+}</code></pre>
+          <div class="response-label">Response <span class="status-nocontent">(204 No Content)</span></div>
+        </div>
+
+        <div id="auth-logout-all" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/logout-all</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Revokes all active sessions for the authenticated caller.</p>
+          <div class="callout callout-tip">
+            <div>🔐</div>
+            <div><strong>Header required:</strong> <code>Authorization: Bearer &lt;access_token&gt;</code></div>
+          </div>
+          <div class="response-label">Response <span class="status-nocontent">(204 No Content)</span></div>
+        </div>
+
+        <!-- TOTP -->
+        <div id="totp-enroll" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/totp/enroll</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Generates a new TOTP enrollment secret and <code>otpauth://</code> URI.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "secret": "JBSWY3DPEHPK3PXP",
+  "otpauth_uri": "otpauth://totp/Struct:developer@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Struct"
+}</code></pre>
+        </div>
+
+        <div id="totp-confirm" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/totp/confirm</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Confirms TOTP enrollment with a valid 6-digit code. Returns single-use backup recovery codes.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "code": "583921"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "backup_codes": [
+    "A1B2C-D3E4F",
+    "G5H6I-J7K8L",
+    "M9N0O-P1Q2R",
+    "S3T4U-V5W6X",
+    "Y7Z8A-B9C0D",
+    "E1F2G-H3I4J",
+    "K5L6M-N7O8P",
+    "Q9R0S-T1U2V"
+  ]
+}</code></pre>
+        </div>
+
+        <div id="totp-delete" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-delete">DELETE</span>
+            <span class="endpoint-path">/v1/auth/totp</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Disables TOTP 2FA and revokes all remaining backup codes.</p>
+          <div class="response-label">Response <span class="status-nocontent">(204 No Content)</span></div>
+        </div>
+
+        <div id="totp-backup" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/v1/auth/totp/backup-codes</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Returns count of remaining unused backup codes.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "remaining": 7
+}</code></pre>
+        </div>
+
+        <div id="mfa-totp" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/mfa/totp</span>
+          </div>
+          <p class="endpoint-desc">Completes login by redeeming an <code>mfa_ticket</code> with a 6-digit TOTP code or an unused backup code.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "ticket": "mfa_ticket_0a1b2c3d4e5f",
+  "code": "583921"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "rft_new_session_token"
+}</code></pre>
+        </div>
+
+        <!-- WebAuthn Passkeys -->
+        <div id="passkey-reg-begin" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/passkeys/register/begin</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Initiates WebAuthn passkey registration ceremony.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "ceremony_id": "ceremony_12345",
+  "challenge": "dGhpcy1pcy1hLXZhbGlkLWNoYWxsZW5nZQ",
+  "rp_name": "Struct",
+  "user_name": "developer@example.com"
+}</code></pre>
+        </div>
+
+        <div id="passkey-reg-finish" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/passkeys/register/finish</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Completes WebAuthn passkey registration ceremony.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "ceremony_id": "ceremony_12345",
+  "client_data_json": "base64url_encoded_client_data",
+  "attestation_object": "base64url_encoded_cbor_attestation",
+  "nickname": "MacBook Touch ID"
+}</code></pre>
+          <div class="response-label">Response <span class="status-created">(201 Created)</span></div>
+        </div>
+
+        <div id="passkey-list" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-get">GET</span>
+            <span class="endpoint-path">/v1/auth/passkeys</span>
+            <span class="status-pill pill-blue" style="font-size: 0.7rem;">✱ Requires Auth</span>
+          </div>
+          <p class="endpoint-desc">Lists all registered passkeys for the caller.</p>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>[
+  {
+    "id": "cred_a1b2c3d4",
+    "nickname": "MacBook Touch ID",
+    "created_at": "2026-09-15T08:30:00Z"
+  }
+]</code></pre>
+        </div>
+
+        <div id="passkey-login-begin" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/passkeys/login/begin</span>
+          </div>
+          <p class="endpoint-desc">Starts passwordless primary login using a WebAuthn passkey.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "email": "developer@example.com"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "ceremony_id": "ceremony_login_67890",
+  "challenge": "base64url_challenge_bytes",
+  "allow_credential_ids": ["base64url_credential_id"]
+}</code></pre>
+        </div>
+
+        <div id="passkey-login-finish" class="endpoint-block">
+          <div class="endpoint-header">
+            <span class="method-badge method-post">POST</span>
+            <span class="endpoint-path">/v1/auth/passkeys/login/finish</span>
+          </div>
+          <p class="endpoint-desc">Completes passwordless WebAuthn login and issues session tokens.</p>
+          <div class="response-label">Request</div>
+<pre><code>{
+  "ceremony_id": "ceremony_login_67890",
+  "credential_id": "base64url_credential_id",
+  "client_data_json": "base64url_client_data",
+  "authenticator_data": "base64url_auth_data",
+  "signature": "base64url_signature"
+}</code></pre>
+          <div class="response-label">Response <span class="status-ok">(200 OK)</span></div>
+<pre><code>{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "rft_new_session_token"
+}</code></pre>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="doc-footer">
+        <div>Struct Framework &copy; 2026. Built by <strong>Loai Kanou</strong> with MIT License.</div>
+        <div class="footer-links">
+          <a href="https://github.com/orgs/struct-kit/framework" target="_blank">GitHub</a>
+          <a href="https://struct-kit.github.io/docs/" target="_blank">Docs Portal</a>
+          <a href="index.html">Home</a>
+          <a href="guide.html">Architecture Guide</a>
+          <a href="api.html">API Reference</a>
+          <a href="cli.html">CLI Manual</a>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    function copyCommand(elemId) {
+      const el = document.getElementById(elemId);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText).then(() => {
+        const btn = event.currentTarget;
+        const orig = btn.innerText;
+        btn.innerText = 'Copied!';
+        setTimeout(() => { btn.innerText = orig; }, 1800);
+      });
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('open');
+      }
+    }
+
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar && window.innerWidth <= 960) {
+          sidebar.classList.remove('open');
+        }
+      });
+    });
+
+    const sections = document.querySelectorAll('section[id], div.endpoint-block[id]');
+    const navLinks = document.querySelectorAll('.sidebar-link');
+
+    window.addEventListener('scroll', () => {
+      let currentSection = '';
+      const scrollY = window.pageYOffset;
+
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 140;
+        const sectionHeight = section.offsetHeight;
+        if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+          currentSection = section.getAttribute('id');
+        }
+      });
+
+      if (currentSection) {
+        navLinks.forEach(link => {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === `#${currentSection}`) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const q = e.target.value.toLowerCase().trim();
+        const blocks = document.querySelectorAll('.endpoint-block');
+        blocks.forEach(b => {
+          const text = b.innerText.toLowerCase();
+          b.style.display = text.includes(q) ? '' : 'none';
+        });
+      });
+
+      window.addEventListener('keydown', function(e) {
+        if (e.key === '/' && document.activeElement !== searchInput) {
+          e.preventDefault();
+          searchInput.focus();
+        }
+      });
+    }
+  </script>
+</body>
+</html>
